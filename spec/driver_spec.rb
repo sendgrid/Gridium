@@ -366,6 +366,91 @@ describe Driver do
 
   end
 
+  describe 'page load strategy' do
+    let(:original_browser) {gridium_config.browser}
+    let(:original_timeout) {gridium_config.page_load_timeout}
+    let(:original_strategy) {gridium_config.page_load_strategy}
+    let(:instant_timeout) {0}
+    let(:fail_fast) {1}
+    let(:wait) {Selenium::WebDriver::Wait.new(:timeout => gridium_config.page_load_timeout)}
+
+    before :each do
+      Log.debug("original_browser is #{original_browser}")
+      Log.debug("original_timeout is #{original_timeout}")
+      Log.debug("original_strategy is #{original_strategy}")
+      gridium_config.page_load_timeout = fail_fast
+    end
+
+    after :each do
+      gridium_config.browser = original_browser
+      gridium_config.page_load_timeout = original_timeout
+      gridium_config.page_load_strategy = original_strategy
+    end
+
+    context 'firefox supported' do
+      before :each do
+        #only supported on firefox https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities#firefox-specific
+        gridium_config.browser = :firefox
+        gridium_config.page_load_timeout = original_timeout * instant_timeout
+      end
+
+      after :each do
+        gridium_config.page_load_strategy = 'normal'
+        gridium_config.page_load_timeout = original_timeout
+      end
+
+      it 'none should never trigger page load timeout error' do
+        gridium_config.page_load_strategy = 'none'
+        gridium_config.page_load_timeout = instant_timeout
+        slow_page = "http://mustadio:3000/slow?seconds=#{original_timeout}"
+        test_driver.visit slow_page
+      end
+
+
+      it 'eager should interact with the page while it is loading' do
+        gridium_config.page_load_strategy = 'eager'
+        gridium_config.page_load_timeout = original_timeout
+        slow_page = "http://mustadio:3000/slow?seconds=#{3 + fail_fast}"
+        test_driver.visit slow_page
+        expected_document_state = "interactive"
+        actual_document_state = test_driver.evaluate_script("document.readyState")
+        expect(actual_document_state).to eq expected_document_state
+      end
+
+      #can't interact with page if you die trying to load it
+      it 'normal should not interact with the page while it is loading' do
+        gridium_config.page_load_strategy = 'normal'
+        slow_page = "http://mustadio:3000/slow?seconds=#{3 + fail_fast}"
+        visit_to_slow_page = lambda {test_driver.visit slow_page}
+        expect(&visit_to_slow_page).to raise_error Selenium::WebDriver::Error::ScriptTimeoutError
+      end
+    end
+
+    context 'chrome unsupported' do
+      let(:slow_page) {"http://mustadio:3000/slow?seconds=2"}
+
+      before :each do
+        gridium_config.browser = :chrome
+      end
+
+      #can't interact with page if you die trying to load it
+      it 'none, eager, and normal should not interact with the page while it is loading' do
+        gridium_config.page_load_strategy = 'none'
+        visit_to_slow_page = lambda {test_driver.visit slow_page}
+        expect(&visit_to_slow_page).to raise_error Selenium::WebDriver::Error::ScriptTimeoutError
+
+        gridium_config.page_load_strategy = 'eager'
+        visit_to_slow_page = lambda {test_driver.visit slow_page}
+        expect(&visit_to_slow_page).to raise_error Selenium::WebDriver::Error::ScriptTimeoutError
+
+        gridium_config.page_load_strategy = 'normal'
+        visit_to_slow_page = lambda {test_driver.visit slow_page}
+        expect(&visit_to_slow_page).to raise_error Selenium::WebDriver::Error::ScriptTimeoutError
+      end
+    end
+
+  end
+
   def create_new_element(name, by, locator)
     Element.new(name, by, locator)
   end

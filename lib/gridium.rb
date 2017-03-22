@@ -24,6 +24,7 @@ module Gridium
     attr_accessor :report_dir, :browser_source, :target_environment, :browser, :url, :page_load_timeout, :element_timeout, :visible_elements_only, :log_level
     attr_accessor :highlight_verifications, :highlight_duration, :screenshot_on_failure, :screenshots_to_s3, :project_name_for_s3, :subdirectory_name_for_s3
     attr_accessor :testrail
+    attr_accessor :page_load_strategy
 
     def initialize
       @report_dir = Dir.home
@@ -32,6 +33,7 @@ module Gridium
       @browser = :firefox
       @url = "about:blank"
       @page_load_timeout = 15
+      @page_load_strategy = 'normal' # none, eager, or normal (https://w3c.github.io/webdriver/webdriver-spec.html#navigation)
       @element_timeout = 15  #This needs to be changed to only look for an element after a page is done loading
       @visible_elements_only = true
       @log_level = :fatal

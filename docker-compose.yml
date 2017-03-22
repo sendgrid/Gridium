@@ -15,6 +15,17 @@ services:
       - HUB_PORT_4444_TCP_PORT=4444
       - no_proxy=localhost
       - HUB_ENV_no_proxy=localhost
+  chrome:
+    image: sethuster/node-chrome-debug
+    ports:
+      - "5900"
+    depends_on:
+      - hub
+    environment:
+      - HUB_PORT_4444_TCP_ADDR=hub
+      - HUB_PORT_4444_TCP_PORT=4444
+      - no_proxy=localhost
+      - HUB_ENV_no_proxy=localhost
   mustadio:
     image: yetanotherlucas/mustadio
     ports:
