@@ -113,6 +113,11 @@ class Element
     return false
   end
 
+  def not_displayed?
+    #sometimes you want to immediately know
+    !@parent.find_element(@by, @locator).displayed?
+  end
+
   def enabled?
     element.enabled?
   end
