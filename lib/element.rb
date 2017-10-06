@@ -18,7 +18,7 @@ class Element
     @driver = Driver.driver
 
     # selenium web element
-    @element = nil
+    @element ||= (opts[:element])
 
     # should always be driver unless getting an element's child
     @parent ||= (opts[:parent] || @driver)
@@ -313,6 +313,7 @@ class Element
   end
 
   def text
+    Log.debug("[GRIDIUM::Element] retrieving text from #{@name}")
     #this is used for text based elements
     element.text
   end
