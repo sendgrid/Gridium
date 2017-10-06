@@ -575,6 +575,16 @@ describe Driver do
     end
   end
 
+  describe 'benchmarking' do
+    let(:sendgrid) {"http://www.sendgrid.com"}
+    let(:signup) {Element.new("sendgrid signup header", :css, "#header-signup")}
+
+    it 'should go to sendgrid and click signup' do
+      test_driver.visit(sendgrid)
+      signup.click
+    end
+  end
+
 
   def create_new_element(name, by, locator)
     Element.new(name, by, locator)
